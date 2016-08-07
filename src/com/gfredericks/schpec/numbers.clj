@@ -76,26 +76,26 @@
                                             :max max})))))]
       (s/spec pred :gen gen))))
 
-(s/def :specs.number.bigdec/precision
+(s/def :com.gfredericks.schpec.numbers.bigdec-in/precision
   pos-int?)
 
-(s/def :specs.number.bigdec/scale
+(s/def :com.gfredericks.schpec.numbers.bigdec-in/scale
   (s/spec (fn [x] (and (int? x) (not (neg? x))))
           :gen #(gen/large-integer* {:min 0})))
 
-(s/def :specs.number.bigdec/min
+(s/def :com.gfredericks.schpec.numbers.bigdec-in/min
   (s/and bigdec?
          ::finite))
 
-(s/def :specs.number.bigdec/max
+(s/def :com.gfredericks.schpec.numbers.bigdec-in/max
   (s/and bigdec?
          ::finite))
 
 (s/fdef bigdec-in
-        :args (s/and (s/keys* :opt-un [:specs.number.bigdec/precision
-                                       :specs.number.bigdec/scale
-                                       :specs.number.bigdec/min
-                                       :specs.number.bigdec/max])
+  :args (s/and (s/keys* :opt-un [:com.gfredericks.schpec.numbers.bigdec-in/precision
+                                 :com.gfredericks.schpec.numbers.bigdec-in/scale
+                                 :com.gfredericks.schpec.numbers.bigdec-in/min
+                                 :com.gfredericks.schpec.numbers.bigdec-in/max])
                #(let [{:keys [min max precision scale]} %
                       dec-pred (bigdec-pred precision scale)]
                   (and (or (not (and min max))

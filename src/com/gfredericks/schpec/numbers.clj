@@ -1,17 +1,16 @@
-(ns com.gfredericks.schpec.number
+(ns com.gfredericks.schpec.numbers
   (:require [clojure.spec :as s]
             [clojure.spec.gen :as gen])
   (:import [java.math BigDecimal MathContext RoundingMode]))
 
-(defn finite?
+(def finite?
   "Returns true if the given value is an actual finite number"
-  [x]
-  (and (number? x)
-       (case x
-         Double/POSITIVE_INFINITY false
-         Double/NEGATIVE_INFINITY false
-         Double/NaN false
-         true)))
+  (let [falsies #{Double/POSITIVE_INFINITY
+                  Double/NEGATIVE_INFINITY
+                  Double/NaN}]
+    (fn [x]
+      (and (number? x)
+           (not (contains? falsies x))))))
 
 (s/def ::finite
   (s/spec finite?

@@ -1,4 +1,4 @@
-(ns com.gfredericks.schpecschpec.fns-test
+(ns com.gfredericks.schpec.fns-test
   (:require [clojure.test :refer :all]
             [com.gfredericks.schpec.fns :refer :all]))
 

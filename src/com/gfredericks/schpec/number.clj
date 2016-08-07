@@ -3,7 +3,8 @@
             [clojure.spec.gen :as gen])
   (:import [java.math BigDecimal MathContext RoundingMode]))
 
-(defn real?
+(defn finite?
+  "Returns true if the given value is an actual finite number"
   [x]
   (and (number? x)
        (case x
@@ -12,24 +13,22 @@
          Double/NaN false
          true)))
 
-(s/def ::real
-  (s/spec real?
+(s/def ::finite
+  (s/spec finite?
           :gen #(gen/double* {:infinite? false :NaN? false})))
 
-(defn decimal-pred
+(defn- bigdec-pred
   [precision scale]
   (fn [d]
-    (let [d (bigdec d)]
-      (and (or (not precision)
-               (>= precision (.precision d)))
-           (or (not scale)
-               (let [d-scale (.scale d)]
-                 (and (not (neg? d-scale))
-                      (>= scale d-scale))))))))
+    (and (or (not precision)
+             (>= precision (.precision d)))
+         (or (not scale)
+             (let [d-scale (.scale d)]
+               (and (not (neg? d-scale))
+                    (>= scale d-scale)))))))
 
-(defn decimal-in
-  "Specs a decimal number. The number type may be anything that bigdec
-   accepts. Options:
+(defn bigdec-in
+  "Specs a bigdec number. Options:
 
     :precision - the number of digits in the unscaled value (default none)
     :scale     - the number of digits to the right of the decimal (default none)
@@ -45,7 +44,7 @@
    does not require both."
   [& options]
   (let [{:keys [precision scale min max]} options
-        dec-pred (decimal-pred precision scale)]
+        dec-pred (bigdec-pred precision scale)]
     (letfn [(pred [d]
               (and (dec-pred d)
                    (or (not min)
@@ -78,26 +77,28 @@
                                             :max max})))))]
       (s/spec pred :gen gen))))
 
-(s/def :specs.number.decimal/precision
+(s/def :specs.number.bigdec/precision
   pos-int?)
 
-(s/def :specs.number.decimal/scale
+(s/def :specs.number.bigdec/scale
   (s/spec (fn [x] (and (int? x) (not (neg? x))))
           :gen #(gen/large-integer* {:min 0})))
 
-(s/def :specs.number.decimal/min
-  ::real)
+(s/def :specs.number.bigdec/min
+  (s/and bigdec?
+         ::finite))
 
-(s/def :specs.number.decimal/max
-  ::real)
+(s/def :specs.number.bigdec/max
+  (s/and bigdec?
+         ::finite))
 
-(s/fdef decimal-in
-        :args (s/and (s/keys* :opt-un [:specs.number.decimal/precision
-                                       :specs.number.decimal/scale
-                                       :specs.number.decimal/min
-                                       :specs.number.decimal/max])
+(s/fdef bigdec-in
+        :args (s/and (s/keys* :opt-un [:specs.number.bigdec/precision
+                                       :specs.number.bigdec/scale
+                                       :specs.number.bigdec/min
+                                       :specs.number.bigdec/max])
                #(let [{:keys [min max precision scale]} %
-                      dec-pred (decimal-pred precision scale)]
+                      dec-pred (bigdec-pred precision scale)]
                   (and (or (not (and min max))
                            (>= max min))
                        (or (not precision)
